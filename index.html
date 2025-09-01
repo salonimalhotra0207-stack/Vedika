@@ -1,0 +1,115 @@
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Our Scrapbook</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #f5f0e6; /* beige background */
+      font-family: 'Arial', sans-serif;
+      color: #111; /* black text */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+    }.book {
+  width: 800px;
+  height: 500px;
+  perspective: 2000px;
+}
+
+.page {
+  width: 100%;
+  height: 100%;
+  background: #fdfcf8;
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: left;
+  transition: transform 1s;
+  box-shadow: 0 0 5px rgba(0,0,0,0.3);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.5rem;
+  text-align: center;
+  padding: 20px;
+}
+
+.page:nth-child(odd) {
+  background: #f8f5ef;
+}
+
+.page.flipped {
+  transform: rotateY(-180deg);
+}
+
+.controls {
+  position: absolute;
+  bottom: 20px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  background: #111;
+  color: #f5f0e6;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+button:hover {
+  background: #d33; /* red hover */
+}
+
+  </style>
+</head>
+<body>
+  <div class="book">
+    <div class="page">Our Scrapbook<br><small>Flip to see what’s inside →</small></div>
+    <div class="page">Created a game for you!</div>
+    <div class="page">Put together this memory, piece by piece.</div>
+    <div class="page">Click on the bucket and find the bucket list.</div>
+    <div class="page">The end… or maybe just the beginning.</div>
+  </div>  <div class="controls">
+    <button id="prev">◀ Prev</button>
+    <button id="next">Next ▶</button>
+  </div>  <script>
+    const pages = document.querySelectorAll('.page');
+    const prevBtn = document.getElementById('prev');
+    const nextBtn = document.getElementById('next');
+    let currentPage = 0;
+
+    function updatePages() {
+      pages.forEach((page, index) => {
+        if (index <= currentPage) {
+          page.classList.add('flipped');
+        } else {
+          page.classList.remove('flipped');
+        }
+      });
+    }
+
+    nextBtn.addEventListener('click', () => {
+      if (currentPage < pages.length - 1) {
+        currentPage++;
+        updatePages();
+      }
+    });
+
+    prevBtn.addEventListener('click', () => {
+      if (currentPage > 0) {
+        currentPage--;
+        updatePages();
+      }
+    });
+  </script></body>
+</html>
