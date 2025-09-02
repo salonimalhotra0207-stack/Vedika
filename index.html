@@ -1,115 +1,459 @@
 <!DOCTYPE html><html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Our Scrapbook</title>
   <style>
-    body {
-      margin: 0;
-      padding: 0;
-      background-color: #f5f0e6; /* beige background */
-      font-family: 'Arial', sans-serif;
-      color: #111; /* black text */
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      overflow: hidden;
-    }.book {
-  width: 800px;
-  height: 500px;
-  perspective: 2000px;
+    /* ==== Base theme (beige + black, red accents) ==== */
+    :root {
+      --beige: #f5f0e6;
+      --page: #fdfcf8;
+      --ink: #111111;
+      --accent: #d0002a; /* red accent */
+      --shadow: rgba(0,0,0,.18);
+    }* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+  background: var(--beige);
+  color: var(--ink);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
 }
 
-.page {
+/* ==== Book frame ==== */
+.stage {
+  width: min(900px, 95vw);
+  height: min(600px, 80vh);
+  position: relative;
+  perspective: 1800px;
+}
+
+.book-shadow {
+  position: absolute; inset: 0;
+  border-radius: 16px;
+  box-shadow: 0 30px 60px -20px var(--shadow);
+}
+
+.book {
   width: 100%;
   height: 100%;
-  background: #fdfcf8;
+  position: relative;
+}
+
+/* Each physical sheet of paper */
+.paper {
   position: absolute;
-  top: 0;
-  left: 0;
-  transform-origin: left;
-  transition: transform 1s;
-  box-shadow: 0 0 5px rgba(0,0,0,0.3);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 1.5rem;
-  text-align: center;
-  padding: 20px;
+  inset: 0;
+  transform-origin: left center;
+  transform-style: preserve-3d;
+  transition: transform 900ms ease;
+  border-radius: 12px;
 }
 
-.page:nth-child(odd) {
-  background: #f8f5ef;
+/* Stack order: first sheet is on top */
+#p1 { z-index: 3; }
+#p2 { z-index: 2; }
+#p3 { z-index: 1; }
+
+/* The two faces of a sheet */
+.front, .back {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  background: var(--page);
+  border: 2px solid #00000015;
+  border-radius: 12px;
+  box-shadow: 0 10px 20px -10px var(--shadow) inset;
+  backface-visibility: hidden;
+  display: grid; place-items: center;
+  padding: 28px;
 }
 
-.page.flipped {
-  transform: rotateY(-180deg);
+.back { transform: rotateY(180deg); }
+
+/* When a sheet is flipped */
+.flipped { transform: rotateY(-180deg); }
+
+/* Page content helpers */
+.page-content { max-width: 85%; text-align: center; }
+h1, h2 { margin: 0 0 .4rem; font-weight: 800; letter-spacing: .5px; }
+h1 { font-size: clamp(28px, 4.2vw, 40px); }
+h2 { font-size: clamp(22px, 3.2vw, 28px); }
+p  { margin: .25rem 0 0; font-size: clamp(14px, 2.2vw, 18px); opacity: .9; }
+
+/* Sticky note look for the cover title */
+.sticky {
+  display: inline-block;
+  background: #fff6cf;
+  color: #111;
+  padding: .6rem 1rem;
+  border: 1px solid #00000022;
+  border-bottom-width: 3px;
+  border-right-width: 3px;
+  border-radius: 6px;
+  transform: rotate(-2deg);
+  box-shadow: 0 6px 12px -8px var(--shadow);
 }
 
+/* Controls */
 .controls {
-  position: absolute;
-  bottom: 20px;
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  gap: 20px;
+  position: absolute; left: 50%; bottom: -56px; transform: translateX(-50%);
+  display: flex; gap: 12px;
 }
+.btn {
+  padding: 10px 18px; border: none; border-radius: 8px;
+  background: #111; color: var(--beige); cursor: pointer;
+  font-size: 15px; font-weight: 600;
+}
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.btn:hover:not(:disabled) { background: var(--accent); }
 
-button {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 5px;
-  background: #111;
-  color: #f5f0e6;
-  cursor: pointer;
-  font-size: 1rem;
-}
+/* Small hint arrows (clickable edges) */
+.edge { position: absolute; top: 0; bottom: 0; width: 10%; cursor: pointer; }
+.edge.left { left: 0; }
+.edge.right { right: 0; }
 
-button:hover {
-  background: #d33; /* red hover */
-}
+/* Make sure nothing overlays full screen unintentionally */
+.no-overlay { position: relative; z-index: 10; }
 
   </style>
 </head>
 <body>
-  <div class="book">
-    <div class="page">Our Scrapbook<br><small>Flip to see what’s inside →</small></div>
-    <div class="page">Created a game for you!</div>
-    <div class="page">Put together this memory, piece by piece.</div>
-    <div class="page">Click on the bucket and find the bucket list.</div>
-    <div class="page">The end… or maybe just the beginning.</div>
-  </div>  <div class="controls">
-    <button id="prev">◀ Prev</button>
-    <button id="next">Next ▶</button>
-  </div>  <script>
-    const pages = document.querySelectorAll('.page');
-    const prevBtn = document.getElementById('prev');
-    const nextBtn = document.getElementById('next');
-    let currentPage = 0;
+  <div class="stage">
+    <div class="book-shadow" aria-hidden="true"></div><div class="book" id="book">
+  <!-- SHEET 1: Front = Page 1 (Cover), Back = Page 2 (Mini‑game) -->
+  <div class="paper" id="p1">
+    <section class="front">
+      <div class="page-content">
+        <span class="sticky"><strong>Our Scrapbook</strong></span>
+        <p style="margin-top:12px">Flip to see what's inside →</p>
+      </div>
+    </section>
+    <section class="back">
+      <div class="page-content">
+        <h2>Created a game for you!</h2>
+        <p>(We'll add the heart‑catch mini‑game here next.)</p>
+      </div>
+    </section>
+  </div>
 
-    function updatePages() {
-      pages.forEach((page, index) => {
-        if (index <= currentPage) {
-          page.classList.add('flipped');
-        } else {
-          page.classList.remove('flipped');
-        }
+  <!-- SHEET 2: Front = Page 3 (Puzzle), Back = Page 4 (Bucket List) -->
+  <div class="paper" id="p2">
+    <section class="front">
+      <div class="page-content">
+        <h2>Put together this memory, piece by piece.</h2>
+        <p>(Puzzle will go here.)</p>
+      </div>
+    </section>
+    <section class="back">
+      <div class="page-content">
+        <h2>Click on the bucket and find the bucket list.</h2>
+        <p>(Clickable bucket reveals items one by one.)</p>
+      </div>
+    </section>
+  </div>
+
+  <!-- SHEET 3: Front = Page 5 (Final), Back = Page 6 (blank) -->
+  <div class="paper" id="p3">
+    <section class="front">
+      <div class="page-content">
+        <h2>The end… or maybe just the beginning.</h2>
+        <p>(We'll embed your Spotify player here later.)</p>
+      </div>
+    </section>
+    <section class="back" aria-hidden="true">
+      <div class="page-content"><p>&nbsp;</p></div>
+    </section>
+  </div>
+
+  <!-- Clickable edges for convenience -->
+  <div class="edge left" id="edgePrev" title="Previous page"></div>
+  <div class="edge right" id="edgeNext" title="Next page"></div>
+</div>
+
+<!-- Controls -->
+<div class="controls no-overlay">
+  <button class="btn" id="prev">◀ Prev</button>
+  <button class="btn" id="next">Next ▶</button>
+</div>
+
+  </div>  <script>
+    // ===== Simple book flip logic (3 sheets => 5 visible pages) =====
+    const papers = [
+      document.getElementById('p1'),
+      document.getElementById('p2'),
+      document.getElementById('p3')
+    ];
+    const nextBtn = document.getElementById('next');
+    const prevBtn = document.getElementById('prev');
+    const edgeNext = document.getElementById('edgeNext');
+    const edgePrev = document.getElementById('edgePrev');
+
+    let current = 0; // 0..(papers.length*2 - 1) conceptual page index
+
+    function canNext(){ return current < papers.length*2 - 1; }
+    function canPrev(){ return current > 0; }
+
+    function applyState(){
+      // Determine which full sheets should be flipped
+      const sheetIndexToFlip = Math.floor((current) / 2);
+      papers.forEach((sheet, i) => {
+        if (i < sheetIndexToFlip) sheet.classList.add('flipped');
+        else if (i > sheetIndexToFlip) sheet.classList.remove('flipped');
       });
+
+      // On odd pages, flip the active sheet too
+      const active = papers[sheetIndexToFlip];
+      if (active) {
+        if (current % 2 === 1) active.classList.add('flipped');
+        else active.classList.remove('flipped');
+      }
+
+      prevBtn.disabled = !canPrev();
+      nextBtn.disabled = !canNext();
     }
 
-    nextBtn.addEventListener('click', () => {
-      if (currentPage < pages.length - 1) {
-        currentPage++;
-        updatePages();
-      }
-    });
+    function goNext(){ if (!canNext()) return; current++; applyState(); }
+    function goPrev(){ if (!canPrev()) return; current--; applyState(); }
 
-    prevBtn.addEventListener('click', () => {
-      if (currentPage > 0) {
-        currentPage--;
-        updatePages();
+    nextBtn.addEventListener('click', goNext);
+    prevBtn.addEventListener('click', goPrev);
+    edgeNext.addEventListener('click', goNext);
+    edgePrev.addEventListener('click', goPrev);
+
+    // Initialize
+    applyState();
+  </script></body>
+</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Our Scrapbook</title>
+  <style>
+    /* ==== Base theme (beige + black, red accents) ==== */
+    :root {
+      --beige: #f5f0e6;
+      --page: #fdfcf8;
+      --ink: #111111;
+      --accent: #d0002a; /* red accent */
+      --shadow: rgba(0,0,0,.18);
+    }* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+  background: var(--beige);
+  color: var(--ink);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+/* ==== Book frame ==== */
+.stage {
+  width: min(900px, 95vw);
+  height: min(600px, 80vh);
+  position: relative;
+  perspective: 1800px;
+}
+
+.book-shadow {
+  position: absolute; inset: 0;
+  border-radius: 16px;
+  box-shadow: 0 30px 60px -20px var(--shadow);
+}
+
+.book {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+/* Each physical sheet of paper */
+.paper {
+  position: absolute;
+  inset: 0;
+  transform-origin: left center;
+  transform-style: preserve-3d;
+  transition: transform 900ms ease;
+  border-radius: 12px;
+}
+
+/* Stack order: first sheet is on top */
+#p1 { z-index: 3; }
+#p2 { z-index: 2; }
+#p3 { z-index: 1; }
+
+/* The two faces of a sheet */
+.front, .back {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  background: var(--page);
+  border: 2px solid #00000015;
+  border-radius: 12px;
+  box-shadow: 0 10px 20px -10px var(--shadow) inset;
+  backface-visibility: hidden;
+  display: grid; place-items: center;
+  padding: 28px;
+}
+
+.back { transform: rotateY(180deg); }
+
+/* When a sheet is flipped */
+.flipped { transform: rotateY(-180deg); }
+
+/* Page content helpers */
+.page-content { max-width: 85%; text-align: center; }
+h1, h2 { margin: 0 0 .4rem; font-weight: 800; letter-spacing: .5px; }
+h1 { font-size: clamp(28px, 4.2vw, 40px); }
+h2 { font-size: clamp(22px, 3.2vw, 28px); }
+p  { margin: .25rem 0 0; font-size: clamp(14px, 2.2vw, 18px); opacity: .9; }
+
+/* Sticky note look for the cover title */
+.sticky {
+  display: inline-block;
+  background: #fff6cf;
+  color: #111;
+  padding: .6rem 1rem;
+  border: 1px solid #00000022;
+  border-bottom-width: 3px;
+  border-right-width: 3px;
+  border-radius: 6px;
+  transform: rotate(-2deg);
+  box-shadow: 0 6px 12px -8px var(--shadow);
+}
+
+/* Controls */
+.controls {
+  position: absolute; left: 50%; bottom: -56px; transform: translateX(-50%);
+  display: flex; gap: 12px;
+}
+.btn {
+  padding: 10px 18px; border: none; border-radius: 8px;
+  background: #111; color: var(--beige); cursor: pointer;
+  font-size: 15px; font-weight: 600;
+}
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.btn:hover:not(:disabled) { background: var(--accent); }
+
+/* Small hint arrows (clickable edges) */
+.edge { position: absolute; top: 0; bottom: 0; width: 10%; cursor: pointer; }
+.edge.left { left: 0; }
+.edge.right { right: 0; }
+
+/* Make sure nothing overlays full screen unintentionally */
+.no-overlay { position: relative; z-index: 10; }
+
+  </style>
+</head>
+<body>
+  <div class="stage">
+    <div class="book-shadow" aria-hidden="true"></div><div class="book" id="book">
+  <!-- SHEET 1: Front = Page 1 (Cover), Back = Page 2 (Mini‑game) -->
+  <div class="paper" id="p1">
+    <section class="front">
+      <div class="page-content">
+        <span class="sticky"><strong>Our Scrapbook</strong></span>
+        <p style="margin-top:12px">Flip to see what's inside →</p>
+      </div>
+    </section>
+    <section class="back">
+      <div class="page-content">
+        <h2>Created a game for you!</h2>
+        <p>(We'll add the heart‑catch mini‑game here next.)</p>
+      </div>
+    </section>
+  </div>
+
+  <!-- SHEET 2: Front = Page 3 (Puzzle), Back = Page 4 (Bucket List) -->
+  <div class="paper" id="p2">
+    <section class="front">
+      <div class="page-content">
+        <h2>Put together this memory, piece by piece.</h2>
+        <p>(Puzzle will go here.)</p>
+      </div>
+    </section>
+    <section class="back">
+      <div class="page-content">
+        <h2>Click on the bucket and find the bucket list.</h2>
+        <p>(Clickable bucket reveals items one by one.)</p>
+      </div>
+    </section>
+  </div>
+
+  <!-- SHEET 3: Front = Page 5 (Final), Back = Page 6 (blank) -->
+  <div class="paper" id="p3">
+    <section class="front">
+      <div class="page-content">
+        <h2>The end… or maybe just the beginning.</h2>
+        <p>(We'll embed your Spotify player here later.)</p>
+      </div>
+    </section>
+    <section class="back" aria-hidden="true">
+      <div class="page-content"><p>&nbsp;</p></div>
+    </section>
+  </div>
+
+  <!-- Clickable edges for convenience -->
+  <div class="edge left" id="edgePrev" title="Previous page"></div>
+  <div class="edge right" id="edgeNext" title="Next page"></div>
+</div>
+
+<!-- Controls -->
+<div class="controls no-overlay">
+  <button class="btn" id="prev">◀ Prev</button>
+  <button class="btn" id="next">Next ▶</button>
+</div>
+
+  </div>  <script>
+    // ===== Simple book flip logic (3 sheets => 5 visible pages) =====
+    const papers = [
+      document.getElementById('p1'),
+      document.getElementById('p2'),
+      document.getElementById('p3')
+    ];
+    const nextBtn = document.getElementById('next');
+    const prevBtn = document.getElementById('prev');
+    const edgeNext = document.getElementById('edgeNext');
+    const edgePrev = document.getElementById('edgePrev');
+
+    let current = 0; // 0..(papers.length*2 - 1) conceptual page index
+
+    function canNext(){ return current < papers.length*2 - 1; }
+    function canPrev(){ return current > 0; }
+
+    function applyState(){
+      // Determine which full sheets should be flipped
+      const sheetIndexToFlip = Math.floor((current) / 2);
+      papers.forEach((sheet, i) => {
+        if (i < sheetIndexToFlip) sheet.classList.add('flipped');
+        else if (i > sheetIndexToFlip) sheet.classList.remove('flipped');
+      });
+
+      // On odd pages, flip the active sheet too
+      const active = papers[sheetIndexToFlip];
+      if (active) {
+        if (current % 2 === 1) active.classList.add('flipped');
+        else active.classList.remove('flipped');
       }
-    });
+
+      prevBtn.disabled = !canPrev();
+      nextBtn.disabled = !canNext();
+    }
+
+    function goNext(){ if (!canNext()) return; current++; applyState(); }
+    function goPrev(){ if (!canPrev()) return; current--; applyState(); }
+
+    nextBtn.addEventListener('click', goNext);
+    prevBtn.addEventListener('click', goPrev);
+    edgeNext.addEventListener('click', goNext);
+    edgePrev.addEventListener('click', goPrev);
+
+    // Initialize
+    applyState();
   </script></body>
 </html>
