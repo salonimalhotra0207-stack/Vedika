@@ -11,7 +11,8 @@
         @import url('https://fonts.googleapis.com/css2?family=Cursive:wght@400&display=swap');
         
         body {
-            background-color: #f2e9e4; /* Soft beige background */
+            /* Corrected background with a subtle gradient for a prettier look */
+            background: radial-gradient(circle, #fcf6e7 0%, #f2e9e4 100%);
             color: #2c2c2c; /* Deep charcoal text */
             font-family: 'Playfair Display', serif;
             display: flex;
@@ -211,6 +212,7 @@
             position: absolute;
             font-size: 2.5em;
             cursor: pointer;
+            /* Corrected: Added animation property */
             animation: fall linear forwards;
             animation-duration: 5s;
             user-select: none;
@@ -404,6 +406,7 @@
 
         document.addEventListener('DOMContentLoaded', (event) => {
             gameArea = document.getElementById('game-area');
+            showPage(currentPage);
         });
 
         function showPage(pageNumber) {
@@ -481,6 +484,9 @@
             const randomDuration = Math.random() * 3 + 3;
             heart.style.animationDuration = `${randomDuration}s`;
             
+            // This is the crucial line for making the animation work
+            heart.style.animation = `fall ${randomDuration}s linear forwards`;
+            
             heart.addEventListener('click', () => {
                 score++;
                 document.getElementById('score').innerText = score;
@@ -493,8 +499,6 @@
 
             gameArea.appendChild(heart);
         }
-
-        showPage(currentPage);
     </script>
 </body>
 </html>
